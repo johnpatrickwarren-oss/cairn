@@ -1,0 +1,13 @@
+# OS
+.DS_Store
+dist/
+node_modules/
+
+# Compiled test sources (from tsconfig.test.json; .ts is source of truth)
+test/**/*.test.js
+
+# TypeScript incremental compile markers (regenerated; build artifact)
+*.tsbuildinfo
+
+# Claude Code session config (per-session local state; not for the repo)
+.claude/

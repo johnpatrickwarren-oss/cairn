@@ -1,0 +1,50 @@
+{
+  "name": "@johnpatrickwarren-oss/cairn",
+  "version": "0.1.0",
+  "private": false,
+  "description": "Structured RCA / postmortem attribution. Ranks candidate cause-events against an observed regression's onset by combining timestamp-alignment kernels, per-cause-kind priors, and evidence-quality boosts from DeploySignal / Tessera / Anvil audit streams. Closes the lifecycle loop: DS catches at gate-time, Tessera observes during steady state, Cairn attributes when something escapes both — statistically, not by eyeballing dashboards.",
+  "license": "Apache-2.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "cairn": "./tools/cairn.js"
+  },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.d.ts",
+    "dist/**/*.d.ts.map",
+    "dist/**/*.js.map",
+    "tools/cairn.js",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "pretest": "tsc && tsc -p tsconfig.test.json",
+    "test": "node --test test/*.test.js"
+  },
+  "devDependencies": {
+    "@types/node": "^25.8.0",
+    "typescript": "^6.0.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/johnpatrickwarren-oss/cairn.git"
+  },
+  "keywords": [
+    "postmortem",
+    "rca",
+    "attribution",
+    "incident-management",
+    "deploysignal",
+    "tessera",
+    "anvil",
+    "chaos-engineering",
+    "site-reliability"
+  ]
+}
