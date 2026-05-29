@@ -19,6 +19,7 @@ export type {
 } from './ingest';
 export { coverageDiagnostic } from './coverage';
 export type { CoverageDiagnostic } from './coverage';
+export { formatDuration } from './duration';
 export { attributionSummary } from './summary';
 export type { AttributionSummary } from './summary';
 export { topCandidates } from './topn';
