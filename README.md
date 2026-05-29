@@ -101,6 +101,16 @@ node tools/cairn-calibrate.js demos/cairn-calibration-scenarios.json
 
 This is **measurement only** — it never tunes the scorer; it's the yardstick *for* any future tuning. It directly serves PRD-30 **SM-2** (the ≥75% top-candidate calibration target). The shipped demo fixture intentionally includes incidents Cairn gets *wrong* (e.g. a slow-burn chaos cause the kernel suppresses) so the metrics are real, not self-confirming. See [`coordination/Q32-CAIRN-CALIBRATION-SPEC.md`](coordination/Q32-CAIRN-CALIBRATION-SPEC.md).
 
+## Prior-sensitivity diagnostic (`--prior-sensitivity`)
+
+A ranked posterior blends a timing kernel, a per-kind **prior** (`π(kind)`), and an evidence boost. The opt-in `--prior-sensitivity` flag answers: **is the #1 candidate winning on timing evidence, or just on my prior?**
+
+```bash
+node tools/cairn.js demos/cairn-incident.json demos/cairn-prior-sensitivity-demo.json --prior-sensitivity
+```
+
+It re-ranks the same candidates under *uniform* priors and reports `prior_driven: true` when flattening the priors changes the #1 — a ranking you should trust less. It's a pure, read-only diagnostic (re-ranks via a fresh flattened-prior config; the scorer and its output are never touched), so the default report stays byte-identical. See [`coordination/Q34-CAIRN-PRIOR-SENSITIVITY-SPEC.md`](coordination/Q34-CAIRN-PRIOR-SENSITIVITY-SPEC.md).
+
 ## Layout
 
 ```
