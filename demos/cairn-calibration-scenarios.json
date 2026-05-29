@@ -1,0 +1,45 @@
+{
+  "_note": "Labeled backtest set for the Q32 calibration harness. Deliberately NOT all-correct: S3 is a confidently-wrong attribution (an innocent deploy out-ranks the true env_change) and S5 exposes a real Cairn blind spot (a slow-burn chaos experiment 90 min before onset is suppressed by the 5-min chaos kernel, so the true cause is never ranked). Expected: top-1 ~60%, top-3 ~80%, MRR ~0.70, non-zero Brier + ECE. onset is 1700000000 in every scenario.",
+  "scenarios": [
+    {
+      "incident": { "incident_id": "INC-1", "onset_time_unix": 1700000000, "affected_signals": ["p99_latency"] },
+      "true_cause_id": "deploy:d1",
+      "candidates": [
+        { "cause_id": "deploy:d1", "cause_kind": "deploy", "timestamp_unix": 1699999700, "evidence_ref": "ds-audit:d1" },
+        { "cause_id": "env:e1", "cause_kind": "env_change", "timestamp_unix": 1699992800, "evidence_ref": "external:e1" }
+      ]
+    },
+    {
+      "incident": { "incident_id": "INC-2", "onset_time_unix": 1700000000, "affected_signals": ["error_rate"] },
+      "true_cause_id": "deploy:d2",
+      "candidates": [
+        { "cause_id": "deploy:d2", "cause_kind": "deploy", "timestamp_unix": 1699999880, "evidence_ref": "ds-audit:d2" },
+        { "cause_id": "env:e2", "cause_kind": "env_change", "timestamp_unix": 1699989200, "evidence_ref": "external:e2" }
+      ]
+    },
+    {
+      "incident": { "incident_id": "INC-3", "onset_time_unix": 1700000000, "affected_signals": ["p99_latency"] },
+      "true_cause_id": "env:e3",
+      "candidates": [
+        { "cause_id": "deploy:d3", "cause_kind": "deploy", "timestamp_unix": 1699999700, "evidence_ref": "ds-audit:d3" },
+        { "cause_id": "env:e3", "cause_kind": "env_change", "timestamp_unix": 1699996400, "evidence_ref": "external:e3" }
+      ]
+    },
+    {
+      "incident": { "incident_id": "INC-4", "onset_time_unix": 1700000000, "affected_signals": ["saturation"] },
+      "true_cause_id": "deploy:d4",
+      "candidates": [
+        { "cause_id": "deploy:d4", "cause_kind": "deploy", "timestamp_unix": 1699997600, "evidence_ref": "ds-audit:d4" },
+        { "cause_id": "dep:dep4", "cause_kind": "dependency_change", "timestamp_unix": 1699996400, "evidence_ref": "external:dep4" }
+      ]
+    },
+    {
+      "incident": { "incident_id": "INC-5", "onset_time_unix": 1700000000, "affected_signals": ["p99_latency"] },
+      "true_cause_id": "chaos:c5",
+      "candidates": [
+        { "cause_id": "deploy:d5", "cause_kind": "deploy", "timestamp_unix": 1699999700, "evidence_ref": "ds-audit:d5" },
+        { "cause_id": "chaos:c5", "cause_kind": "chaos_experiment", "timestamp_unix": 1699994600, "evidence_ref": "anvil-experiment:c5" }
+      ]
+    }
+  ]
+}

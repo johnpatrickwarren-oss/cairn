@@ -15,3 +15,11 @@ export type {
   MinimalDsRecord, MinimalTesseraPayload, MinimalAnvilExperiment,
   ExternalEvent,
 } from './ingest';
+export {
+  calibrate, scoreScenario, reliabilityBins,
+  DEFAULT_K_VALUES, DEFAULT_BIN_COUNT,
+} from './calibration';
+export type {
+  LabeledScenario, CalibrationOptions, CalibrationReport,
+  ScenarioOutcome, ReliabilityBin,
+} from './types';
