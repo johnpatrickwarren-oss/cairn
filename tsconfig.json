@@ -20,6 +20,6 @@
     "noFallthroughCasesInSwitch": true,
     "types": ["node"]
   },
-  "include": ["index.ts", "score.ts", "ingest.ts", "types.ts", "confidence.ts", "calibration.ts", "coverage.ts", "prior-sensitivity.ts"],
+  "include": ["index.ts", "score.ts", "ingest.ts", "types.ts", "confidence.ts", "calibration.ts", "coverage.ts", "prior-sensitivity.ts", "summary.ts"],
   "exclude": ["node_modules", "dist", "test", "tools", "demos", "coordination"]
 }
