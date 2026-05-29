@@ -34,6 +34,8 @@ const {
   candidatesFromAnvilExperiments,
   candidatesFromExternalEvents,
   coverageDiagnostic,
+  decisiveness,
+  robustness,
 } = require('../dist');
 
 const REPORT_VERSION = 'v1';
@@ -59,17 +61,26 @@ function assembleCandidates(src) {
   return out;
 }
 
-function buildReport(incident, candidatesSrc) {
+function buildReport(incident, candidatesSrc, withConfidence) {
   const candidates = assembleCandidates(candidatesSrc);
   const config = candidatesSrc.config ?? {};
   const ranked = rankCandidates(candidates, incident, config);
-  return {
+  const report = {
     cairn_report_version: REPORT_VERSION,
     incident,
     ranked: ranked.ranked,
     suppressed: ranked.suppressed,
     config_used: ranked.config_used,
   };
+  // Confidence is opt-in (Q31): when absent, the envelope is byte-identical to
+  // v1, so the saved walkthrough fixture still verifies under --check.
+  if (withConfidence) {
+    report.confidence = {
+      decisiveness: decisiveness(ranked),
+      robustness: robustness(candidates, incident, config),
+    };
+  }
+  return report;
 }
 
 function renderAscii(report) {
@@ -112,6 +123,22 @@ function renderAscii(report) {
     }
     L.push('');
   }
+  if (report.confidence) {
+    const d = report.confidence.decisiveness;
+    const r = report.confidence.robustness;
+    L.push('  Confidence & robustness:');
+    L.push('  ' + '─'.repeat(76));
+    L.push(`  · decisiveness: ${d.label.toUpperCase()} (top-margin ${(d.top_margin * 100).toFixed(1)}%, normalized entropy ${d.entropy_normalized.toFixed(3)})`);
+    L.push(`  · robustness:   top rank held in ${(r.top_stability * 100).toFixed(0)}% of ${r.trials.length} onset-perturbation trials (σ=${r.onset_sigma_seconds_used}s)`);
+    if (r.flips.length > 0) {
+      L.push(`      ⚠ rank flips under onset shift:`);
+      for (const f of r.flips) {
+        const sign = f.offset_seconds >= 0 ? '+' : '';
+        L.push(`        onset ${sign}${f.offset_seconds}s (${f.sigma_multiple}σ) → top becomes ${f.top_cause_id}`);
+      }
+    }
+    L.push('');
+  }
   L.push('  Note: Cairn does alignment-based ranked attribution, not Pearl-style');
   L.push('  causal inference. Posteriors reflect timing-consistency under the');
   L.push('  configured per-kind kernel + prior + evidence-quality boost. The');
@@ -143,7 +170,7 @@ function renderCoverage(cov) {
 function main() {
   const args = process.argv.slice(2);
   if (args.length < 2) {
-    console.error('usage: node tools/cairn.js <incident.json> <candidates.json> [--json] [--check <expected.json>] [--coverage]');
+    console.error('usage: node tools/cairn.js <incident.json> <candidates.json> [--json] [--confidence] [--coverage] [--check <expected.json>]');
     process.exit(2);
   }
   const incidentPath = args[0];
@@ -152,10 +179,13 @@ function main() {
   const checkIdx = args.indexOf('--check');
   const checkPath = checkIdx >= 0 ? args[checkIdx + 1] : null;
   const coverageOut = args.includes('--coverage');
+  // --check replays the v1 (no-confidence) report against the saved fixture,
+  // so confidence is suppressed in that path regardless of the flag (Q31).
+  const withConfidence = args.includes('--confidence') && !checkPath;
 
   const incident = loadJson(incidentPath);
   const candidatesSrc = loadJson(candidatesPath);
-  const report = buildReport(incident, candidatesSrc);
+  const report = buildReport(incident, candidatesSrc, withConfidence);
 
   // Opt-in coverage diagnostic: attach ONLY when --coverage is present.
   // Default output (no --coverage) is byte-identical to pre-Q33 output.
