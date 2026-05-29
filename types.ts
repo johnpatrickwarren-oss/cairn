@@ -106,3 +106,117 @@ export interface RankedAttribution {
     evidence_boost: Record<'proceed' | 'extend' | 'rollback' | 'baking', number>;
   };
 }
+
+// ── Q32 — calibration / backtesting (measurement layer) ─────────────────────
+//
+// Read-only diagnostics over the v1 scorer. Given labeled incidents (each with
+// a post-confirmed true cause), measures how accurate + calibrated the ranked
+// posteriors are. Measurement only — never mutates the scorer or its config.
+// See coordination/Q32-CAIRN-CALIBRATION-SPEC.md.
+
+/** One labeled incident for backtesting: the inputs Cairn would score, plus
+ *  the post-confirmed true cause. candidates are pre-assembled (decoupled from
+ *  ingest) so the harness scores exactly what the operator would. */
+export interface LabeledScenario {
+  incident: IncidentDefinition;
+  candidates: AttributionCandidate[];
+  config?: CairnScoringConfig;
+  /** cause_id of the candidate the postmortem confirmed as the cause. */
+  true_cause_id: string;
+}
+
+export interface CalibrationOptions {
+  /** Top-k cutoffs to report. Default [1, 3]. */
+  k_values?: number[];
+  /** Reliability-bin count over the top-candidate confidence. Default 10. */
+  bin_count?: number;
+}
+
+export interface ScenarioOutcome {
+  incident_id: string;
+  true_cause_id: string;
+  predicted_top_cause_id: string | null;
+  /** 1-based rank of the true cause in ranked[]; null if suppressed/absent. */
+  true_cause_rank: number | null;
+  true_cause_posterior: number;
+  top_confidence: number;
+  top_correct: boolean;
+  reciprocal_rank: number;
+  /** Multi-class Brier for this scenario: Σ_c (p_c − y_c)². */
+  brier: number;
+}
+
+export interface ReliabilityBin {
+  lower: number;
+  upper: number;
+  count: number;
+  mean_confidence: number;
+  empirical_accuracy: number;
+}
+
+export interface CalibrationReport {
+  n: number;
+  top1_accuracy: number;
+  topk_accuracy: { k: number; accuracy: number }[];
+  /** Mean reciprocal rank of the true cause. */
+  mrr: number;
+  /** Mean multi-class Brier across scenarios (lower = better calibrated). */
+  brier_score: number;
+  /** Expected calibration error over the reliability bins. */
+  ece: number;
+  reliability_bins: ReliabilityBin[];
+  per_scenario: ScenarioOutcome[];
+}
+// ── Q31 — attribution confidence & robustness (additive layer) ──────────────
+//
+// These types describe a read-layer atop the v1 scorer. They are NOT folded
+// into RankedAttribution (which stays byte-identical for replay-clean / the
+// --check walkthrough fixture per Q31 back-compat anchor). Computed by the
+// pure functions in confidence.ts and surfaced only behind `--confidence`.
+
+/** Operator-tunable margin thresholds for the decisiveness label. */
+export interface DecisivenessThresholds {
+  /** top_margin ≥ this ⇒ 'decisive'. Default 0.5. */
+  decisive?: number;
+  /** top_margin ≥ this (and < decisive) ⇒ 'contested'. Default 0.15. */
+  contested?: number;
+}
+
+/** How clear-cut the top ranking is, read off the posterior distribution. */
+export interface Decisiveness {
+  /** Posterior gap between #1 and #2 (1.0 if a single candidate; 0 if none). */
+  top_margin: number;
+  /** Shannon entropy of the posterior distribution, in bits. */
+  entropy_bits: number;
+  /** entropy_bits / log2(n), in [0,1]; 0 = one candidate holds all mass,
+   *  1 = uniform over the ranked set. */
+  entropy_normalized: number;
+  label: 'no_candidates' | 'decisive' | 'contested' | 'ambiguous';
+  /** Echo of the thresholds applied (defaults filled in). */
+  thresholds_used: { decisive: number; contested: number };
+}
+
+export interface RobustnessOptions {
+  /** Onset jitter σ in seconds. Falls back to
+   *  engine_onset_estimate.sigma_seconds, then to 300 (5 min). */
+  onset_sigma_seconds?: number;
+  /** σ-multiples to probe. Default [-2,-1,-0.5,0.5,1,2]. Deterministic — no
+   *  RNG, so robustness output is replay-clean (NFR-3). */
+  sigma_multipliers?: number[];
+}
+
+export interface RobustnessTrial {
+  sigma_multiple: number;
+  offset_seconds: number;
+  top_cause_id: string | null;
+  top_posterior: number;
+}
+
+export interface RobustnessReport {
+  baseline_top_cause_id: string | null;
+  onset_sigma_seconds_used: number;
+  /** Fraction of perturbation trials whose top candidate matched baseline. */
+  top_stability: number;
+  trials: RobustnessTrial[];
+  flips: RobustnessTrial[];
+}
