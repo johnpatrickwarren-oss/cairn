@@ -15,3 +15,12 @@ export type {
   MinimalDsRecord, MinimalTesseraPayload, MinimalAnvilExperiment,
   ExternalEvent,
 } from './ingest';
+export {
+  decisiveness, robustness,
+  DEFAULT_DECISIVE_MARGIN, DEFAULT_CONTESTED_MARGIN,
+  DEFAULT_ONSET_JITTER_SECONDS, DEFAULT_SIGMA_MULTIPLIERS,
+} from './confidence';
+export type {
+  Decisiveness, DecisivenessThresholds,
+  RobustnessOptions, RobustnessTrial, RobustnessReport,
+} from './types';

@@ -106,3 +106,57 @@ export interface RankedAttribution {
     evidence_boost: Record<'proceed' | 'extend' | 'rollback' | 'baking', number>;
   };
 }
+
+// ── Q31 — attribution confidence & robustness (additive layer) ──────────────
+//
+// These types describe a read-layer atop the v1 scorer. They are NOT folded
+// into RankedAttribution (which stays byte-identical for replay-clean / the
+// --check walkthrough fixture per Q31 back-compat anchor). Computed by the
+// pure functions in confidence.ts and surfaced only behind `--confidence`.
+
+/** Operator-tunable margin thresholds for the decisiveness label. */
+export interface DecisivenessThresholds {
+  /** top_margin ≥ this ⇒ 'decisive'. Default 0.5. */
+  decisive?: number;
+  /** top_margin ≥ this (and < decisive) ⇒ 'contested'. Default 0.15. */
+  contested?: number;
+}
+
+/** How clear-cut the top ranking is, read off the posterior distribution. */
+export interface Decisiveness {
+  /** Posterior gap between #1 and #2 (1.0 if a single candidate; 0 if none). */
+  top_margin: number;
+  /** Shannon entropy of the posterior distribution, in bits. */
+  entropy_bits: number;
+  /** entropy_bits / log2(n), in [0,1]; 0 = one candidate holds all mass,
+   *  1 = uniform over the ranked set. */
+  entropy_normalized: number;
+  label: 'no_candidates' | 'decisive' | 'contested' | 'ambiguous';
+  /** Echo of the thresholds applied (defaults filled in). */
+  thresholds_used: { decisive: number; contested: number };
+}
+
+export interface RobustnessOptions {
+  /** Onset jitter σ in seconds. Falls back to
+   *  engine_onset_estimate.sigma_seconds, then to 300 (5 min). */
+  onset_sigma_seconds?: number;
+  /** σ-multiples to probe. Default [-2,-1,-0.5,0.5,1,2]. Deterministic — no
+   *  RNG, so robustness output is replay-clean (NFR-3). */
+  sigma_multipliers?: number[];
+}
+
+export interface RobustnessTrial {
+  sigma_multiple: number;
+  offset_seconds: number;
+  top_cause_id: string | null;
+  top_posterior: number;
+}
+
+export interface RobustnessReport {
+  baseline_top_cause_id: string | null;
+  onset_sigma_seconds_used: number;
+  /** Fraction of perturbation trials whose top candidate matched baseline. */
+  top_stability: number;
+  trials: RobustnessTrial[];
+  flips: RobustnessTrial[];
+}
