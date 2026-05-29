@@ -22,6 +22,7 @@ export type { CoverageDiagnostic } from './coverage';
 export { formatDuration } from './duration';
 export { attributionSummary } from './summary';
 export type { AttributionSummary } from './summary';
+export { topCandidates } from './topn';
 export {
   decisiveness, robustness,
   DEFAULT_DECISIVE_MARGIN, DEFAULT_CONTESTED_MARGIN,
