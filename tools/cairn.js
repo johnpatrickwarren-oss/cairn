@@ -33,6 +33,7 @@ const {
   candidatesFromTesseraFeed,
   candidatesFromAnvilExperiments,
   candidatesFromExternalEvents,
+  coverageDiagnostic,
 } = require('../dist');
 
 const REPORT_VERSION = 'v1';
@@ -119,10 +120,30 @@ function renderAscii(report) {
   return L.join('\n');
 }
 
+function renderCoverage(cov) {
+  const L = [];
+  L.push('');
+  L.push('━'.repeat(78));
+  L.push('  Cairn coverage diagnostic (--coverage)');
+  L.push('━'.repeat(78));
+  L.push(`  candidate_count:        ${cov.candidate_count}`);
+  L.push(`  earliest_lead_seconds:  ${cov.earliest_lead_seconds ?? 'null'}`);
+  L.push(`  widest_sigma_seconds:   ${cov.widest_sigma_seconds ?? 'null'}`);
+  L.push(`  adequately_covered:     ${cov.adequately_covered}`);
+  if (cov.warning) {
+    L.push('');
+    L.push(`  ⚠  WARNING: ${cov.warning}`);
+  } else {
+    L.push('  coverage adequate.');
+  }
+  L.push('━'.repeat(78));
+  return L.join('\n');
+}
+
 function main() {
   const args = process.argv.slice(2);
   if (args.length < 2) {
-    console.error('usage: node tools/cairn.js <incident.json> <candidates.json> [--json] [--check <expected.json>]');
+    console.error('usage: node tools/cairn.js <incident.json> <candidates.json> [--json] [--check <expected.json>] [--coverage]');
     process.exit(2);
   }
   const incidentPath = args[0];
@@ -130,10 +151,22 @@ function main() {
   const jsonOut = args.includes('--json');
   const checkIdx = args.indexOf('--check');
   const checkPath = checkIdx >= 0 ? args[checkIdx + 1] : null;
+  const coverageOut = args.includes('--coverage');
 
   const incident = loadJson(incidentPath);
   const candidatesSrc = loadJson(candidatesPath);
   const report = buildReport(incident, candidatesSrc);
+
+  // Opt-in coverage diagnostic: attach ONLY when --coverage is present.
+  // Default output (no --coverage) is byte-identical to pre-Q33 output.
+  if (coverageOut) {
+    const coverage = coverageDiagnostic(
+      assembleCandidates(candidatesSrc),
+      incident,
+      candidatesSrc.config ?? {},
+    );
+    report.coverage = coverage;
+  }
 
   if (checkPath) {
     const expected = JSON.parse(fs.readFileSync(checkPath, 'utf8'));
@@ -151,6 +184,9 @@ function main() {
     process.stdout.write(JSON.stringify(report, null, 2) + '\n');
   } else {
     console.log(renderAscii(report));
+    if (coverageOut) {
+      console.log(renderCoverage(report.coverage));
+    }
   }
 }
 
