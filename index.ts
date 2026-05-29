@@ -16,10 +16,17 @@ export type {
   ExternalEvent,
 } from './ingest';
 export {
+  decisiveness, robustness,
+  DEFAULT_DECISIVE_MARGIN, DEFAULT_CONTESTED_MARGIN,
+  DEFAULT_ONSET_JITTER_SECONDS, DEFAULT_SIGMA_MULTIPLIERS,
+} from './confidence';
+export {
   calibrate, scoreScenario, reliabilityBins,
   DEFAULT_K_VALUES, DEFAULT_BIN_COUNT,
 } from './calibration';
 export type {
+  Decisiveness, DecisivenessThresholds,
+  RobustnessOptions, RobustnessTrial, RobustnessReport,
   LabeledScenario, CalibrationOptions, CalibrationReport,
   ScenarioOutcome, ReliabilityBin,
 } from './types';

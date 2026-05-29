@@ -74,6 +74,19 @@ node tools/cairn.js demos/cairn-incident.json demos/cairn-candidates.json \
 
 See [`demos/CAIRN-DEMO.md`](demos/CAIRN-DEMO.md) for the minute-by-minute walkthrough.
 
+### Confidence & robustness (`--confidence`)
+
+A bare posterior ("deploy 80.7%") doesn't say how much to trust the ranking. The opt-in `--confidence` flag adds two honesty signals without changing the default output:
+
+```bash
+node tools/cairn.js demos/cairn-incident.json demos/cairn-candidates.json --confidence
+```
+
+- **Decisiveness** — the #1↔#2 posterior margin + the distribution's normalized entropy, summarized as a one-word label (`decisive` / `contested` / `ambiguous`). A 34%-vs-31% top is a coin-flip the postmortem shouldn't assert as "the cause."
+- **Robustness** — re-ranks under a deterministic grid of onset perturbations (σ from the engine-inferred onset band when present, else 5 min) and reports whether the top candidate survives. If a ±σ onset shift flips the winner, the ranking is fragile and Cairn says so — and lists which shift dethrones it.
+
+Both are computed by pure, deterministic functions (`decisiveness` / `robustness` in `confidence.ts`) — no RNG, so the output stays replay-clean. They are **additive**: the default report (and the `--check` replay fixture) is byte-identical to v1. See [`coordination/Q31-CAIRN-CONFIDENCE-SPEC.md`](coordination/Q31-CAIRN-CONFIDENCE-SPEC.md).
+
 ## Calibration / backtesting
 
 A posterior is only worth trusting if it's *calibrated* — if the things Cairn calls 80% actually turn out to be the cause ~80% of the time. `tools/cairn-calibrate.js` backtests the scorer over a set of **labeled** incidents (each carrying the post-confirmed true cause) and reports accuracy + calibration:
