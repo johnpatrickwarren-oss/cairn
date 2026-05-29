@@ -87,6 +87,20 @@ node tools/cairn.js demos/cairn-incident.json demos/cairn-candidates.json --conf
 
 Both are computed by pure, deterministic functions (`decisiveness` / `robustness` in `confidence.ts`) — no RNG, so the output stays replay-clean. They are **additive**: the default report (and the `--check` replay fixture) is byte-identical to v1. See [`coordination/Q31-CAIRN-CONFIDENCE-SPEC.md`](coordination/Q31-CAIRN-CONFIDENCE-SPEC.md).
 
+## Calibration / backtesting
+
+A posterior is only worth trusting if it's *calibrated* — if the things Cairn calls 80% actually turn out to be the cause ~80% of the time. `tools/cairn-calibrate.js` backtests the scorer over a set of **labeled** incidents (each carrying the post-confirmed true cause) and reports accuracy + calibration:
+
+```bash
+node tools/cairn-calibrate.js demos/cairn-calibration-scenarios.json
+```
+
+- **top-1 / top-3 accuracy** and **MRR** — does the true cause rank first (or in the top 3)?
+- **multi-class Brier score** — overall posterior accuracy (lower = better).
+- **reliability table + ECE** (expected calibration error) — the honest "does 80% mean 80%?" picture, per confidence bin.
+
+This is **measurement only** — it never tunes the scorer; it's the yardstick *for* any future tuning. It directly serves PRD-30 **SM-2** (the ≥75% top-candidate calibration target). The shipped demo fixture intentionally includes incidents Cairn gets *wrong* (e.g. a slow-burn chaos cause the kernel suppresses) so the metrics are real, not self-confirming. See [`coordination/Q32-CAIRN-CALIBRATION-SPEC.md`](coordination/Q32-CAIRN-CALIBRATION-SPEC.md).
+
 ## Layout
 
 ```

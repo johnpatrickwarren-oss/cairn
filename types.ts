@@ -107,6 +107,66 @@ export interface RankedAttribution {
   };
 }
 
+// ── Q32 — calibration / backtesting (measurement layer) ─────────────────────
+//
+// Read-only diagnostics over the v1 scorer. Given labeled incidents (each with
+// a post-confirmed true cause), measures how accurate + calibrated the ranked
+// posteriors are. Measurement only — never mutates the scorer or its config.
+// See coordination/Q32-CAIRN-CALIBRATION-SPEC.md.
+
+/** One labeled incident for backtesting: the inputs Cairn would score, plus
+ *  the post-confirmed true cause. candidates are pre-assembled (decoupled from
+ *  ingest) so the harness scores exactly what the operator would. */
+export interface LabeledScenario {
+  incident: IncidentDefinition;
+  candidates: AttributionCandidate[];
+  config?: CairnScoringConfig;
+  /** cause_id of the candidate the postmortem confirmed as the cause. */
+  true_cause_id: string;
+}
+
+export interface CalibrationOptions {
+  /** Top-k cutoffs to report. Default [1, 3]. */
+  k_values?: number[];
+  /** Reliability-bin count over the top-candidate confidence. Default 10. */
+  bin_count?: number;
+}
+
+export interface ScenarioOutcome {
+  incident_id: string;
+  true_cause_id: string;
+  predicted_top_cause_id: string | null;
+  /** 1-based rank of the true cause in ranked[]; null if suppressed/absent. */
+  true_cause_rank: number | null;
+  true_cause_posterior: number;
+  top_confidence: number;
+  top_correct: boolean;
+  reciprocal_rank: number;
+  /** Multi-class Brier for this scenario: Σ_c (p_c − y_c)². */
+  brier: number;
+}
+
+export interface ReliabilityBin {
+  lower: number;
+  upper: number;
+  count: number;
+  mean_confidence: number;
+  empirical_accuracy: number;
+}
+
+export interface CalibrationReport {
+  n: number;
+  top1_accuracy: number;
+  topk_accuracy: { k: number; accuracy: number }[];
+  /** Mean reciprocal rank of the true cause. */
+  mrr: number;
+  /** Mean multi-class Brier across scenarios (lower = better calibrated). */
+  brier_score: number;
+  /** Expected calibration error over the reliability bins. */
+  ece: number;
+  reliability_bins: ReliabilityBin[];
+  per_scenario: ScenarioOutcome[];
+}
 // ── Q31 — attribution confidence & robustness (additive layer) ──────────────
 //
 // These types describe a read-layer atop the v1 scorer. They are NOT folded
