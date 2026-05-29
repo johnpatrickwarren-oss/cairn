@@ -19,6 +19,8 @@ export type {
 } from './ingest';
 export { coverageDiagnostic } from './coverage';
 export type { CoverageDiagnostic } from './coverage';
+export { attributionSummary } from './summary';
+export type { AttributionSummary } from './summary';
 export {
   decisiveness, robustness,
   DEFAULT_DECISIVE_MARGIN, DEFAULT_CONTESTED_MARGIN,

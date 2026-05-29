@@ -37,6 +37,7 @@ const {
   coverageDiagnostic,
   decisiveness,
   robustness,
+  attributionSummary,
 } = require('../dist');
 
 const REPORT_VERSION = 'v1';
@@ -188,7 +189,7 @@ function renderCoverage(cov) {
 function main() {
   const args = process.argv.slice(2);
   if (args.length < 2) {
-    console.error('usage: node tools/cairn.js <incident.json> <candidates.json> [--json] [--confidence] [--coverage] [--prior-sensitivity] [--check <expected.json>]');
+    console.error('usage: node tools/cairn.js <incident.json> <candidates.json> [--json] [--confidence] [--coverage] [--prior-sensitivity] [--summary] [--check <expected.json>]');
     process.exit(2);
   }
   const incidentPath = args[0];
@@ -198,6 +199,7 @@ function main() {
   const checkIdx = args.indexOf('--check');
   const checkPath = checkIdx >= 0 ? args[checkIdx + 1] : null;
   const coverageOut = args.includes('--coverage');
+  const summaryOut = args.includes('--summary');
   // --check replays the v1 (no-confidence) report against the saved fixture,
   // so confidence is suppressed in that path regardless of the flag (Q31).
   const withConfidence = args.includes('--confidence') && !checkPath;
@@ -230,15 +232,32 @@ function main() {
     return;
   }
 
+  // --summary: recompute the RankedAttribution at the output site (pure, cheap,
+  // deterministic). Does NOT change buildReport's returned report object.
+  // Gated on summaryOut — default path emits zero new bytes (AC-4 / AC-5).
+  let summaryResult = null;
+  if (summaryOut) {
+    const rankedResult = rankCandidates(
+      assembleCandidates(candidatesSrc),
+      incident,
+      candidatesSrc.config ?? {},
+    );
+    summaryResult = attributionSummary(rankedResult);
+  }
+
   if (jsonOut) {
+    // Build the envelope, adding optional keys only when their flag is present.
+    let envelope = { ...report };
     if (priorSens) {
       const candidates = assembleCandidates(candidatesSrc);
       const config = candidatesSrc.config ?? {};
       const diag = priorSensitivity(candidates, incident, config);
-      process.stdout.write(JSON.stringify({ ...report, prior_sensitivity: diag }, null, 2) + '\n');
-    } else {
-      process.stdout.write(JSON.stringify(report, null, 2) + '\n');
+      envelope = { ...envelope, prior_sensitivity: diag };
     }
+    if (summaryOut) {
+      envelope = { ...envelope, summary: summaryResult };
+    }
+    process.stdout.write(JSON.stringify(envelope, null, 2) + '\n');
   } else {
     console.log(renderAscii(report));
     if (coverageOut) {
@@ -249,6 +268,10 @@ function main() {
       const config = candidatesSrc.config ?? {};
       const diag = priorSensitivity(candidates, incident, config);
       console.log(renderPriorSensitivity(diag));
+    }
+    if (summaryOut) {
+      // Single paste-ready headline line — no box drawing required (Q35 AC-2).
+      console.log(summaryResult.headline);
     }
   }
 }

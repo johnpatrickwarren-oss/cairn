@@ -138,6 +138,56 @@ node tools/cairn.js demos/cairn-incident.json demos/cairn-candidates.json --prio
 
 It's a pure, read-only diagnostic (re-ranks via a fresh flattened-prior config; never mutates the scorer). See [`coordination/Q34-CAIRN-PRIOR-SENSITIVITY-SPEC.md`](../coordination/Q34-CAIRN-PRIOR-SENSITIVITY-SPEC.md).
 
+## Attribution-summary line (Q35)
+
+`--summary` prints the one-liner an SRE pastes at the top of a postmortem. It is a
+**read-only presentation helper**: it reads `ranked[0]`, `ranked.length`, and
+`suppressed.length` off the already-computed result — no new scoring, no new math.
+
+### Well-attributed case — deploy is genuinely the best-aligned candidate
+
+```bash
+node tools/cairn.js demos/cairn-incident.json demos/cairn-candidates.json --summary
+# → Top: deploy:model-weights-v2026-05-19-001 at 80.7% (3 ranked, 1 suppressed)
+```
+
+The deploy ranks first because timing is good (18-min lag within 30-min kernel σ),
+the per-kind prior is highest (deploys are the most common incident cause), and the
+DS `extend` verdict boosts the score 1.5×. The summary line faithfully reflects this.
+
+### The case the summary gets wrong (mandated honest-failure case)
+
+```bash
+node tools/cairn.js demos/cairn-incident.json demos/cairn-prior-sensitivity-demo.json --summary
+# → Top: deploy:checkout-svc-v2026-05-19-007 at 73.7% (2 ranked, 0 suppressed)
+```
+
+**Operator reading — the honest limitation:** the headline confidently names the deploy
+as the top cause, but this is the *prior-driven mis-attribution* from Q34. In this
+fixture the feature-flag rollout (`external:feature-flag-rollout-2026-05-19`) is far
+better-aligned (200s lag vs 1200s for the deploy), but the deploy wins anyway because
+its kind prior (0.35) overwhelms the timing evidence. The summary line is
+**presentation-only and has no notion of correctness** — it will faithfully print a
+confident headline even when the ranking is wrong. Pair `--summary` with
+`--prior-sensitivity` (which flags this exact case as `prior_driven: true`) before
+trusting the headline in a postmortem.
+
+```bash
+# Expose the prior-driven mis-attribution:
+node tools/cairn.js demos/cairn-incident.json demos/cairn-prior-sensitivity-demo.json \
+  --summary --prior-sensitivity
+```
+
+### Using --summary with --json
+
+`--summary` composes independently with `--json`: the envelope gains a top-level
+`summary` object; the base report shape is unchanged.
+
+```bash
+node tools/cairn.js demos/cairn-incident.json demos/cairn-candidates.json --json --summary
+# → { ..., "summary": { "headline": "Top: deploy:model-weights-v2026-05-19-001 at 80.7% (3 ranked, 1 suppressed)", "top_cause_id": "deploy:model-weights-v2026-05-19-001", "top_posterior": 0.807..., "ranked_count": 3, "suppressed_count": 1 } }
+```
+
 ## See also
 
 - `coordination/PRD-30-cairn.md` — PRD with US/FR/NFR/AC/anti-scope
