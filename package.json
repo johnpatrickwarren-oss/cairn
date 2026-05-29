@@ -23,9 +23,10 @@
     "node": ">=20"
   },
   "scripts": {
+    "clean": "rm -rf dist && rm -f *.tsbuildinfo test/*.test.js",
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "pretest": "tsc && tsc -p tsconfig.test.json",
+    "pretest": "npm run clean && tsc && tsc -p tsconfig.test.json",
     "test": "node --test test/*.test.js"
   },
   "devDependencies": {
