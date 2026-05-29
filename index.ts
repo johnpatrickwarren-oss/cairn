@@ -15,6 +15,8 @@ export type {
   MinimalDsRecord, MinimalTesseraPayload, MinimalAnvilExperiment,
   ExternalEvent,
 } from './ingest';
+export { coverageDiagnostic } from './coverage';
+export type { CoverageDiagnostic } from './coverage';
 export {
   decisiveness, robustness,
   DEFAULT_DECISIVE_MARGIN, DEFAULT_CONTESTED_MARGIN,
