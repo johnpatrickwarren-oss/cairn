@@ -111,6 +111,33 @@ node tools/cairn.js demos/cairn-incident.json demos/cairn-candidates.json \
   --check demos/cairn-attribution-walkthrough.json
 ```
 
+## Prior-sensitivity diagnostic (Q34)
+
+`--prior-sensitivity` re-ranks the same candidates under *uniform* priors and asks: **is the #1 winning on timing evidence, or just on its prior?** A ranking that flips when priors are flattened is "prior-driven" and should be trusted less.
+
+```bash
+# Prior-DRIVEN case: the deploy wins only on its 0.35 prior; flatten the priors
+# and a better-timed feature-flag rollout takes #1.
+node tools/cairn.js demos/cairn-incident.json demos/cairn-prior-sensitivity-demo.json --prior-sensitivity
+```
+
+```
+  Prior-sensitivity diagnostic:
+    baseline #1: deploy:checkout-svc-v2026-05-19-007        (posterior 0.7373)
+    uniform  #1: external:feature-flag-rollout-2026-05-19   (posterior 0.5549)
+    prior_driven: true
+    ⚠ top candidate's lead depends on the prior, not timing alone.
+```
+
+Contrast — the **robust** (non-flip) case, so the demo is not self-confirming. In the canonical `cairn-candidates.json` scenario the deploy is so well-timed it stays #1 even under uniform priors:
+
+```bash
+node tools/cairn.js demos/cairn-incident.json demos/cairn-candidates.json --prior-sensitivity --json
+# → prior_driven: false (baseline #1 == uniform #1 == deploy:model-weights-…)
+```
+
+It's a pure, read-only diagnostic (re-ranks via a fresh flattened-prior config; never mutates the scorer). See [`coordination/Q34-CAIRN-PRIOR-SENSITIVITY-SPEC.md`](../coordination/Q34-CAIRN-PRIOR-SENSITIVITY-SPEC.md).
+
 ## See also
 
 - `coordination/PRD-30-cairn.md` — PRD with US/FR/NFR/AC/anti-scope

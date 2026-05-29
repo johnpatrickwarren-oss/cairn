@@ -29,6 +29,7 @@ const path = require('node:path');
 
 const {
   rankCandidates,
+  priorSensitivity,
   candidatesFromDsAudit,
   candidatesFromTesseraFeed,
   candidatesFromAnvilExperiments,
@@ -69,6 +70,23 @@ function buildReport(incident, candidatesSrc) {
     suppressed: ranked.suppressed,
     config_used: ranked.config_used,
   };
+}
+
+function renderPriorSensitivity(diag) {
+  const L = [];
+  L.push('');
+  L.push('  Prior-sensitivity diagnostic:');
+  L.push('  ' + '─'.repeat(72));
+  L.push(`    baseline #1: ${diag.baseline_top_cause_id ?? '(none)'}   (posterior ${diag.baseline_top_posterior.toFixed(4)})`);
+  L.push(`    uniform  #1: ${diag.uniform_top_cause_id ?? '(none)'}   (posterior ${diag.uniform_top_posterior.toFixed(4)})`);
+  L.push(`    prior_driven: ${diag.prior_driven}`);
+  if (diag.prior_driven) {
+    L.push('    ⚠ top candidate\'s lead depends on the prior, not timing alone.');
+  } else {
+    L.push('    ✓ top candidate is robust to flattening the prior.');
+  }
+  L.push('  ' + '─'.repeat(72));
+  return L.join('\n');
 }
 
 function renderAscii(report) {
@@ -122,12 +140,13 @@ function renderAscii(report) {
 function main() {
   const args = process.argv.slice(2);
   if (args.length < 2) {
-    console.error('usage: node tools/cairn.js <incident.json> <candidates.json> [--json] [--check <expected.json>]');
+    console.error('usage: node tools/cairn.js <incident.json> <candidates.json> [--json] [--check <expected.json>] [--prior-sensitivity]');
     process.exit(2);
   }
   const incidentPath = args[0];
   const candidatesPath = args[1];
   const jsonOut = args.includes('--json');
+  const priorSens = args.includes('--prior-sensitivity');
   const checkIdx = args.indexOf('--check');
   const checkPath = checkIdx >= 0 ? args[checkIdx + 1] : null;
 
@@ -135,6 +154,7 @@ function main() {
   const candidatesSrc = loadJson(candidatesPath);
   const report = buildReport(incident, candidatesSrc);
 
+  // --check early-return: replay fixture path is unaffected by --prior-sensitivity.
   if (checkPath) {
     const expected = JSON.parse(fs.readFileSync(checkPath, 'utf8'));
     const actual = JSON.parse(JSON.stringify(report));
@@ -148,9 +168,22 @@ function main() {
   }
 
   if (jsonOut) {
-    process.stdout.write(JSON.stringify(report, null, 2) + '\n');
+    if (priorSens) {
+      const candidates = assembleCandidates(candidatesSrc);
+      const config = candidatesSrc.config ?? {};
+      const diag = priorSensitivity(candidates, incident, config);
+      process.stdout.write(JSON.stringify({ ...report, prior_sensitivity: diag }, null, 2) + '\n');
+    } else {
+      process.stdout.write(JSON.stringify(report, null, 2) + '\n');
+    }
   } else {
     console.log(renderAscii(report));
+    if (priorSens) {
+      const candidates = assembleCandidates(candidatesSrc);
+      const config = candidatesSrc.config ?? {};
+      const diag = priorSensitivity(candidates, incident, config);
+      console.log(renderPriorSensitivity(diag));
+    }
   }
 }
 

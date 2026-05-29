@@ -74,6 +74,16 @@ node tools/cairn.js demos/cairn-incident.json demos/cairn-candidates.json \
 
 See [`demos/CAIRN-DEMO.md`](demos/CAIRN-DEMO.md) for the minute-by-minute walkthrough.
 
+## Prior-sensitivity diagnostic (`--prior-sensitivity`)
+
+A ranked posterior blends a timing kernel, a per-kind **prior** (`π(kind)`), and an evidence boost. The opt-in `--prior-sensitivity` flag answers: **is the #1 candidate winning on timing evidence, or just on my prior?**
+
+```bash
+node tools/cairn.js demos/cairn-incident.json demos/cairn-prior-sensitivity-demo.json --prior-sensitivity
+```
+
+It re-ranks the same candidates under *uniform* priors and reports `prior_driven: true` when flattening the priors changes the #1 — a ranking you should trust less. It's a pure, read-only diagnostic (re-ranks via a fresh flattened-prior config; the scorer and its output are never touched), so the default report stays byte-identical. See [`coordination/Q34-CAIRN-PRIOR-SENSITIVITY-SPEC.md`](coordination/Q34-CAIRN-PRIOR-SENSITIVITY-SPEC.md).
+
 ## Layout
 
 ```

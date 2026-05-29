@@ -1,0 +1,18 @@
+{
+  "ds_records": [
+    {
+      "deploy_id": "checkout-svc-v2026-05-19-007",
+      "ts": 1747699200,
+      "config_version": "v2026-05-19-checkout"
+    }
+  ],
+  "external_events": [
+    {
+      "event_id": "feature-flag-rollout-2026-05-19",
+      "timestamp_unix": 1747700200,
+      "event_kind": "generic",
+      "description": "Gradual feature-flag rollout reached 100% fleet",
+      "source": "flag-service"
+    }
+  ]
+}

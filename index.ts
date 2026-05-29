@@ -7,6 +7,8 @@ export type {
 } from './types';
 export { scoreCandidate, rankCandidates } from './score';
 export type { ScoreBreakdown } from './score';
+export { priorSensitivity } from './prior-sensitivity';
+export type { PriorSensitivity } from './prior-sensitivity';
 export {
   candidatesFromDsAudit, candidatesFromTesseraFeed,
   candidatesFromAnvilExperiments, candidatesFromExternalEvents,
