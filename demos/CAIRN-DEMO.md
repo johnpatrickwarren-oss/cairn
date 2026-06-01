@@ -136,7 +136,7 @@ node tools/cairn.js demos/cairn-incident.json demos/cairn-candidates.json --prio
 # → prior_driven: false (baseline #1 == uniform #1 == deploy:model-weights-…)
 ```
 
-It's a pure, read-only diagnostic (re-ranks via a fresh flattened-prior config; never mutates the scorer). See [`coordination/Q34-CAIRN-PRIOR-SENSITIVITY-SPEC.md`](../coordination/Q34-CAIRN-PRIOR-SENSITIVITY-SPEC.md).
+It's a pure, read-only diagnostic (re-ranks via a fresh flattened-prior config; never mutates the scorer).
 
 ## Attribution-summary line (Q35)
 
@@ -190,9 +190,7 @@ node tools/cairn.js demos/cairn-incident.json demos/cairn-candidates.json --json
 
 ## See also
 
-- `coordination/PRD-30-cairn.md` — PRD with US/FR/NFR/AC/anti-scope
-- `coordination/Q30-CAIRN-ATTRIBUTION-SPEC.md` — Architect spec
 - `NORTH-STAR-ARCHITECTURE.md` Addition #30 — lifecycle-loop framing + contract block
 - `engine/cairn/` — typed contracts + scoring + ingest helpers
-- `coordination/PRD-29-anvil.md` + `NORTH-STAR-ARCHITECTURE.md` Addition #29 — Anvil, the sibling chaos-verdict layer Cairn ingests from
+- `NORTH-STAR-ARCHITECTURE.md` Addition #29 — Anvil, the sibling chaos-verdict layer Cairn ingests from
 - [Tessera](https://github.com/johnpatrickwarren-oss/tessera) — sibling product (per-shard observation layer Cairn ingests from)

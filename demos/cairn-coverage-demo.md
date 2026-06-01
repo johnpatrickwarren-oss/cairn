@@ -56,5 +56,3 @@ Coverage is relative to the configured bandwidths. If the operator's stack manif
 | `widest_sigma_seconds` | largest resolved σ among the present cause-kinds; `null` if none |
 | `adequately_covered` | `count > 0 && earliest_lead ≥ 2 × widest_sigma` |
 | `warning` | explanation when coverage is inadequate; `null` otherwise |
-
-See [`coordination/Q33-CAIRN-COVERAGE-SPEC.md`](../coordination/Q33-CAIRN-COVERAGE-SPEC.md).

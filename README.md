@@ -85,7 +85,7 @@ node tools/cairn.js demos/cairn-incident.json demos/cairn-candidates.json --conf
 - **Decisiveness** — the #1↔#2 posterior margin + the distribution's normalized entropy, summarized as a one-word label (`decisive` / `contested` / `ambiguous`). A 34%-vs-31% top is a coin-flip the postmortem shouldn't assert as "the cause."
 - **Robustness** — re-ranks under a deterministic grid of onset perturbations (σ from the engine-inferred onset band when present, else 5 min) and reports whether the top candidate survives. If a ±σ onset shift flips the winner, the ranking is fragile and Cairn says so — and lists which shift dethrones it.
 
-Both are computed by pure, deterministic functions (`decisiveness` / `robustness` in `confidence.ts`) — no RNG, so the output stays replay-clean. They are **additive**: the default report (and the `--check` replay fixture) is byte-identical to v1. See [`coordination/Q31-CAIRN-CONFIDENCE-SPEC.md`](coordination/Q31-CAIRN-CONFIDENCE-SPEC.md).
+Both are computed by pure, deterministic functions (`decisiveness` / `robustness` in `confidence.ts`) — no RNG, so the output stays replay-clean. They are **additive**: the default report (and the `--check` replay fixture) is byte-identical to v1.
 
 ## Calibration / backtesting
 
@@ -99,7 +99,7 @@ node tools/cairn-calibrate.js demos/cairn-calibration-scenarios.json
 - **multi-class Brier score** — overall posterior accuracy (lower = better).
 - **reliability table + ECE** (expected calibration error) — the honest "does 80% mean 80%?" picture, per confidence bin.
 
-This is **measurement only** — it never tunes the scorer; it's the yardstick *for* any future tuning. It directly serves PRD-30 **SM-2** (the ≥75% top-candidate calibration target). The shipped demo fixture intentionally includes incidents Cairn gets *wrong* (e.g. a slow-burn chaos cause the kernel suppresses) so the metrics are real, not self-confirming. See [`coordination/Q32-CAIRN-CALIBRATION-SPEC.md`](coordination/Q32-CAIRN-CALIBRATION-SPEC.md).
+This is **measurement only** — it never tunes the scorer; it's the yardstick *for* any future tuning. It directly serves PRD-30 **SM-2** (the ≥75% top-candidate calibration target). The shipped demo fixture intentionally includes incidents Cairn gets *wrong* (e.g. a slow-burn chaos cause the kernel suppresses) so the metrics are real, not self-confirming.
 
 ## Prior-sensitivity diagnostic (`--prior-sensitivity`)
 
@@ -109,7 +109,7 @@ A ranked posterior blends a timing kernel, a per-kind **prior** (`π(kind)`), an
 node tools/cairn.js demos/cairn-incident.json demos/cairn-prior-sensitivity-demo.json --prior-sensitivity
 ```
 
-It re-ranks the same candidates under *uniform* priors and reports `prior_driven: true` when flattening the priors changes the #1 — a ranking you should trust less. It's a pure, read-only diagnostic (re-ranks via a fresh flattened-prior config; the scorer and its output are never touched), so the default report stays byte-identical. See [`coordination/Q34-CAIRN-PRIOR-SENSITIVITY-SPEC.md`](coordination/Q34-CAIRN-PRIOR-SENSITIVITY-SPEC.md).
+It re-ranks the same candidates under *uniform* priors and reports `prior_driven: true` when flattening the priors changes the #1 — a ranking you should trust less. It's a pure, read-only diagnostic (re-ranks via a fresh flattened-prior config; the scorer and its output are never touched), so the default report stays byte-identical.
 
 ## Layout
 
@@ -129,21 +129,18 @@ cairn/
 ├── tools/
 │   └── cairn.js              # CLI driver (ASCII + --json + --check)
 ├── test/                     # 26 tests — score (14), ingest (5), CLI (4) + types
-├── demos/
-│   ├── CAIRN-DEMO.md         # walkthrough doc
-│   ├── cairn-incident.json   # synthetic incident definition
-│   ├── cairn-candidates.json # 4 candidate cause-events from 4 sources
-│   └── cairn-attribution-walkthrough.json  # saved expected output (replay-clean)
-└── coordination/
-    ├── PRD-30-cairn.md       # Product requirements
-    └── Q30-CAIRN-ATTRIBUTION-SPEC.md  # Architect specification
+└── demos/
+    ├── CAIRN-DEMO.md         # walkthrough doc
+    ├── cairn-incident.json   # synthetic incident definition
+    ├── cairn-candidates.json # 4 candidate cause-events from 4 sources
+    └── cairn-attribution-walkthrough.json  # saved expected output (replay-clean)
 ```
 
 ## Methodology
 
 Cairn was developed using the [Anchor](https://github.com/johnpatrickwarren-oss/anchor) coordination methodology — five-role framework (PM / Architect / TPM / Implementer / Reviewer) with four-anchor pre-merge defense (T0 / T1 / T2 / T3), audit-tier round scaling, anti-scope-ledger discipline, and Memorial F sub-rule application.
 
-The PRD + architect spec at `coordination/` capture the discipline application at brief-drafting time. Originally landed in the DeploySignal repo at `engine/cairn/*` (DS PR #21, merged 2026-05-21); extracted to this sibling repo for architectural consistency with the rest of the bundle (DS engine + Tessera + Cairn — three sibling products, one shared statistical substrate).
+Originally landed in the DeploySignal repo at `engine/cairn/*` (DS PR #21, merged 2026-05-21); extracted to this sibling repo for architectural consistency with the rest of the bundle (DS engine + Tessera + Cairn — three sibling products, one shared statistical substrate).
 
 ## License
 
