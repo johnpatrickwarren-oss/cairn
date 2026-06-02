@@ -1,0 +1,25 @@
+[
+  {
+    "id": "no-god-files",
+    "intent": "No NEW source file over 800 lines (God file). cairn's modules are small, focused statistical units; the ratchet freezes today's state and blocks a new monolith forming. Existing files (if any) are grandfathered.",
+    "check": { "kind": "oversized_files", "maxLines": 800 },
+    "mode": "ratchet",
+    "severity": "block"
+  },
+  {
+    "id": "no-god-functions",
+    "intent": "No NEW function over 100 lines (God function). cairn's statistical routines legitimately run long; the ratchet grandfathers today's count (incl. the ~89-line tools/cairn.js helper) and blocks adding more.",
+    "check": { "kind": "max_function_lines", "maxLines": 100 },
+    "mode": "ratchet",
+    "severity": "block",
+    "lang": "ts",
+    "engine": "ast-grep"
+  },
+  {
+    "id": "no-god-module",
+    "intent": "No NEW module imported by more than 12 files (coupling hub). types.ts/index.ts are contract barrels (benign) and are grandfathered; this blocks a NEW everything-depends-on-it module forming.",
+    "check": { "kind": "module_fanin", "maxFanin": 12 },
+    "mode": "ratchet",
+    "severity": "block"
+  }
+]
