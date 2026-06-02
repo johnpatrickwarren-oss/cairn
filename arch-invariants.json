@@ -7,9 +7,18 @@
     "severity": "block"
   },
   {
+    "id": "no-complex-functions",
+    "intent": "PRIMARY function-health gate: no NEW function with cyclomatic complexity over 12 (1 + decision points + &&/||). The less-arbitrary signal than length — flags BRANCHY hard-to-test functions, not merely long ones (McCabe ~10; 12 is forgiving). Ratchet grandfathers today's complex functions and blocks any new one.",
+    "check": { "kind": "max_complexity", "maxComplexity": 12 },
+    "mode": "ratchet",
+    "severity": "block",
+    "lang": "ts",
+    "engine": "ast-grep"
+  },
+  {
     "id": "no-god-functions",
-    "intent": "No NEW function over 100 lines (God function). cairn's statistical routines legitimately run long; the ratchet grandfathers today's count (incl. the ~89-line tools/cairn.js helper) and blocks adding more.",
-    "check": { "kind": "max_function_lines", "maxLines": 100 },
+    "intent": "Coarse BACKSTOP: no NEW function over 150 lines (huge-but-flat functions only; complexity above is the primary gate). Ratchet.",
+    "check": { "kind": "max_function_lines", "maxLines": 150 },
     "mode": "ratchet",
     "severity": "block",
     "lang": "ts",
