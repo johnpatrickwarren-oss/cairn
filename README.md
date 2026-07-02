@@ -128,7 +128,7 @@ cairn/
 ├── index.ts                  # module barrel
 ├── tools/
 │   └── cairn.js              # CLI driver (ASCII + --json + --check)
-├── test/                     # 26 tests — score (14), ingest (5), CLI (4) + types
+├── test/                     # test suites — score, ingest, CLI + types
 └── demos/
     ├── CAIRN-DEMO.md         # walkthrough doc
     ├── cairn-incident.json   # synthetic incident definition
@@ -148,7 +148,7 @@ Apache 2.0. See [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE).
 
 ## Status
 
-**v1 publication candidate.** All PRD-30 AC-1 through AC-10 closed; 26 tests passing; type-check clean; demo replay-clean. Buyer-paired follow-ons (incident-mgmt webhook adapters, profile-level kernel defaults, multi-incident batch RCA, web UI, streaming) deferred per PRD-30 anti-scope.
+**v1 publication candidate.** All PRD-30 AC-1 through AC-10 closed; 78 test cases across 10 suites passing (as of 2026-07-02) — run `npm test`; type-check clean; demo replay-clean. Buyer-paired follow-ons (incident-mgmt webhook adapters, profile-level kernel defaults, multi-incident batch RCA, web UI, streaming) deferred per PRD-30 anti-scope.
 
 ## Contact
 
